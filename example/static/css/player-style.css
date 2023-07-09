@@ -1,0 +1,142 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background-color: whitesmoke;
+}
+
+.video-js {
+  font-size: 12px;
+  color: #fff;
+}
+
+.vjs-watermark-top,
+.vjs-watermark-center {
+  /* HIDE ELEMENT */
+  visibility: hidden;
+  display: none;
+  /* padding: 8px 16px; */
+  padding: 3% 6%;
+  border: none;
+  /* border-radius: 5px; */
+  border-radius: 2vw;
+  background-color: #E62D1F;
+  color: white;
+  /* font-size: 16px; */
+  font-size: 1.6vw;
+  font-weight: bold;
+  text-decoration: none;
+  text-align: center;
+}
+
+.vjs-watermark-center:hover {
+  background-color: #FF3B30;
+}
+
+.vjs-watermark-top {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  background-color: #f04235;
+  color: white;
+  padding: 1.8vh 1.8vw;
+  font-size: 2.5vw;
+  cursor: pointer;
+  display: none;
+  z-index: 1000;
+  transform: scale(1.2);
+  border-radius: 25px;
+}
+
+.vjs-watermark-top:hover {
+  background-color: #FF3B30;
+}
+
+.vjs-watermark-center {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    background-color: #E62D1F;
+    color: white;
+    padding: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    display: none;
+    z-index: 1000;
+    transform: translate(-50%, -50%);
+}
+
+.video-js .vjs-control-bar {
+  background-color: #3A2798;
+}
+
+/* ... (Previous code) ... */
+.video-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100%);
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 999;
+  transition: height 0.3s ease-in-out; /* Add a transition for height changes */
+}
+
+.watch-again {
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+
+}
+
+.material-icons {
+  margin-right: 8px; 
+}
+
+.vjs-watch-again {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background-color: rgba(63, 58, 58, 0.85);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 24px;
+  border-radius: 10px;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.vjs-watch-again:hover {
+  background-color: rgba(128, 128, 128, 0.8);
+}
+
+.material-icons {
+  margin-right: 8px; /* Add some space between the icon and the text */
+}
+
+/* Small Devices devices */
+/* @media (max-width: 1000px) {
+} */
+
+
+/* Large devices */
+@media (min-width: 900px) {
+  .vjs-watermark-top {
+    font-size: 25px;
+    padding: 10px 20px;
+    /* padding: 1.5vh 1.5vw;
+    font-size: 1.2w; */
+    color: green;
+  }
+  .vjs-watermark-center {
+    visibility: hidden;
+  }
+}

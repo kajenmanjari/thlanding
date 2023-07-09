@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{video_title}}</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- <link href="https://vjs.zencdn.net/7.11.4/video-js.min.css" rel="stylesheet"> -->
+  <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+  <!-- <script src="https://vjs.zencdn.net/7.11.4/video.min.js"></script> -->
+  <script src="https://vjs.zencdn.net/7.14.3/video.min.js"></script>
+  <!-- <script src="https://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script>  -->
+</head>
+<body>
+    <video
+      id="videoPlayer"
+      class="video-js vjs-default-skin vjs-big-play-centered"
+      controls
+      preload="auto"
+      width="800"
+      height="450"
+      data-setup='{"fluid": true, "playbackRates": [0.5, 1, 1.5, 2]}'
+      >
+      <source src="{{video_url}}" type="video/mp4">
+      <p class="vjs-no-js">
+          To view this video please enable JavaScript.
+          <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+      </p>
+    </video>
+
+    <div id="videoOverlay" class="video-overlay"></div>
+        
+    <link rel="stylesheet" href="/static/css/player-style.css">
+
+    <script>
+      const player = videojs('videoPlayer');
+    
+      // START IF
+
+      let maxWatched = 0;
+
+      player.on('timeupdate', function() {
+        if(player.currentTime() > maxWatched) {
+          maxWatched = player.currentTime();
+          console.log(maxWatched)
+        }
+      });
+
+
+      // Create the top right watermark
+      var ctaText = "{{cta_text|escapejs}}";
+      var ctaLink = "{{cta_link|escapejs}}";
+
+    
+      // const watermarkTop = document.createElement('a');
+      // watermarkTop.style.display = "none";
+      // watermarkTop.href = ctaLink;
+      // watermarkTop.target = '_blank';
+      // watermarkTop.className = 'vjs-watermark-top';    
+      // watermarkTop.innerText = ctaText;
+
+      // Create the centered watermark
+      const watermarkCenter = document.createElement('a');
+      watermarkCenter.href = ctaLink;
+      watermarkCenter.target = '_blank';
+      watermarkCenter.className = 'vjs-watermark-center';
+      watermarkCenter.innerText = ctaText;
+      
+      watermarkCenter.style.top = "65%";
+      watermarkCenter.style.padding = "1.5% 2%";
+      watermarkCenter.style.fontSize = "1.8vw";
+      watermarkCenter.style.borderRadius = "1.5vw";
+    
+      // Add the custom watermarks to the player
+      player.ready(() => {
+        // player.el().appendChild(watermarkTop);
+        player.el().appendChild(watermarkCenter);
+      });
+
+      {% if not cta_status %} // If cta_status is true
+      watermarkCenter.style.width = '0';
+      watermarkCenter.style.height = '0';
+      watermarkCenter.style.visibility = 'hidden';
+
+      // watermarkTop.style.width = '0';
+      // watermarkTop.style.height = '0';
+      // watermarkTop.style.visibility = 'hidden';
+      {% endif %} // End of if cta_status is true
+
+    
+      // Show the top right watermark when the video is playing
+      // player.on('play', () => {
+      //   watermarkTop.style.display = 'block';
+      // });
+    
+      // // Hide the top right watermark when the video is paused or ended
+      // player.on('pause', () => {
+      //   if (!player.paused()) {
+      //     watermarkTop.style.display = 'none';
+      //   }
+      // });
+    
+      // player.on('ended', () => {
+      //   watermarkTop.style.display = 'none';
+      // });
+    
+      // Show the centered watermark when the video ends
+      player.on('ended', () => {
+        watermarkCenter.style.display = 'block';
+      });
+
+      // END IF
+
+      // Hide the centered watermark when the video is replayed
+      player.on('play', () => {
+        watermarkCenter.style.display = 'none';
+      });
+    
+      // Create the Watch Again button
+      const watchAgainLink = document.createElement('a');
+      watchAgainLink.className = 'vjs-watch-again';
+      watchAgainLink.style.top = "40%";
+      watchAgainLink.style.fontSize = "1.8vw";
+      watchAgainLink.style.display = 'none'; // Add this line to hide the button initially
+      watchAgainLink.onclick = () => {
+        player.currentTime(0);
+        player.play();
+      };
+    
+      const watchAgainIcon = document.createElement('span');
+      watchAgainIcon.className = 'material-icons';
+      watchAgainIcon.innerText = 'replay';
+      watchAgainLink.appendChild(watchAgainIcon); // Add the icon to the link
+    
+      const watchAgainText = document.createTextNode('Watch Again');
+      watchAgainLink.appendChild(watchAgainText); // Add the text to the link
+    
+      player.on('ended', () => {
+        watchAgainLink.style.display = 'flex';
+      });
+    
+      player.on('play', () => {
+        watchAgainLink.style.display = 'none';
+      });
+    
+      player.ready(() => {
+        player.el().appendChild(watchAgainLink);
+      });
+
+    // Custom keyboard controls
+    let videoStarted = false;
+
+    player.on('keydown', (event) => {
+    const currentTime = player.currentTime();
+    const volume = player.volume();
+    const isMuted = player.muted();
+
+    switch (event.which) {
+        case 32: // Spacebar
+        if (!videoStarted) {
+            player.play();
+            videoStarted = true;
+        } else {
+            player.paused() ? player.play() : player.pause();
+        }
+        break;
+        case 32: // Spacebar
+        player.paused() ? player.play() : player.pause();
+        break;
+        case 37: // Left arrow
+        player.currentTime(currentTime - 5);
+        break;
+        case 39: // Right arrow
+        player.currentTime(currentTime + 5);
+        break;
+        case 38: // Up arrow
+        player.volume(Math.min(volume + 0.1, 1));
+        player.controlBar.volumePanel.show();
+        break;
+        case 40: // Down arrow
+        player.volume(Math.max(volume - 0.1, 0));
+        player.controlBar.volumePanel.show();
+        break;
+        case 77: // M
+        player.muted(!isMuted);
+        break;
+        case 70: // F
+        if (player.isFullscreen()) {
+            player.exitFullscreen();
+        } else {
+            player.requestFullscreen();
+        }
+        break;
+    }
+    });
+
+    // // Hide the volume control after a delay when the mouse leaves the control bar
+    // player.controlBar.volumePanel.on('mouseleave', () => {
+    // player.controlBar.volumePanel.hide();
+    // });
+
+    player.on('click', () => {
+    player.el().focus();
+    });
+
+    // Focus the player when it is ready
+    player.ready(() => {
+    player.el().focus();
+    });
+
+    // Show the centered watermark when the video ends
+    player.on('ended', () => {
+      watermarkCenter.style.display = 'block';
+      document.getElementById('videoOverlay').style.display = 'block';
+    });
+
+    // Hide the centered watermark when the video is replayed
+    player.on('play', () => {
+      watermarkCenter.style.display = 'none';
+      document.getElementById('videoOverlay').style.display = 'none';
+    });
+
+    player.on('ended', () => {
+      const videoOverlay = document.getElementById('videoOverlay');
+      videoOverlay.style.display = 'block';
+    });
+
+
+    // Attribute watch time when user exits tab:
+    window.addEventListener("beforeunload", function (event) {
+      navigator.sendBeacon('/exit-page/', JSON.stringify({
+          uid: '{{lead_id}}',
+          watchTime: maxWatched
+      }));
+    });
+
+  </script>
+</body>
+</html>
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video</title>
+</head>
+<body>
+    {% if valid_slug %}
+        <h1>Valid Slug Status = {{valid_slug}}</h1>
+        <h1>video_title = {{video_title}}</h1>
+        <h1>video_url = {{video_url}}</h1>
+        <h1>cta_status = {{cta_status}}</h1>
+        {% if cta_status %}
+            <h1>cta_text = {{cta_text}}</h1>
+            <h1>cta_link = {{cta_link}}</h1>
+        {% endif %}
+        <h1>embed_status = {{embed_status}}</h1>
+        {% if embed_status %}
+            <h1>embed_code = {{video_title}}</h1>
+        {% endif %}
+        <h1>slug = {{slug}}</h1>
+    {% else %}
+        <h1>404 Error: Page not found</h1>
+        <h1>slug = {{slug}}</h1>
+    {% endif %}
+</body>
+</html> -->

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <link rel="stylesheet" href="/static/css/lander-main.css">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/css/player-custom-style.css">
+    <script src="https://vjs.zencdn.net/7.14.3/video.min.js"></script>
+    <title>{{video_title}}</title>
+    <style>
+        .logo h1 {
+            font-size: 3em;
+        }
+        .logo {
+            position: relative;
+            margin-bottom: 50px;
+            text-align: left;
+            top: 30px;
+            height: 100px;
+        }
+        .logo img {
+            max-width: 80%;  
+            max-height: 80%;  
+            width: auto;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    {% if logo_status %}
+    <div class="logo">
+        <img src="https:{{logo_url}}" alt="Logo">
+    </div>
+    {% endif %}
+    {% if not logo_status %}
+    <div class="logo"></div>
+    <style>
+        .logo {
+            position: relative;
+            margin-bottom: 50px;
+            text-align: left;
+            /* left:30px; */
+            top: 30px;
+            height: 30px;
+        }
+    </style>
+    {% endif %}
+    <div class="container-wrapper">
+        <div class="videoplayer-button-title-button-wrapper">
+            <div class="video_container">
+                <!-- <iframe src="{{absolute_uri}}player/{{ slug }}/"  width="1000px" height="550px"></iframe> -->
+                <iframe src="{{absolute_uri}}player/{{ slug }}/"  width="10%" height="550px"></iframe>
+            </div>
+            <div class="title-button-wrapper">
+                <div class="video_title">
+                    <h2>{{video_title}}</h2>
+                </div>
+                {% if cta_status %}
+                <div class="button_container">
+                    <button id="myButton" data-link="{{cta_link}}">{{cta_text}}</button>
+                </div>
+                <script>
+                    document.getElementById('myButton').addEventListener('click', function(event) {
+                        event.preventDefault(); // Prevent the default click action
+                
+                        var link = this.getAttribute('data-link'); // Get the link from data attribute
+                
+                        fetch('/cta-clicked/', {  // Make sure the path matches what's in your urlpatterns
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json', // Change the content type to json
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                uid: '{{lead_id}}' // include your uid variable here
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data); // Log the data from the server
+                            // After the AJAX request is done, redirect to the link
+                            window.open(link, '_blank');
+                        })
+                        .catch(error => console.error(error));
+                    });
+                </script>                                 
+                    
+                {% endif %}    
+            </div>
+        </div>
+        {% if embed_status %}
+        <div class="embed_container">
+            <!-- <iframe src="https://calendly.com/strategy-session-ionicx/research/" class="embed-iframe"></iframe> -->
+            <iframe src="{{embed_code}}" class="embed-iframe"></iframe>
+        </div>
+        {% endif %}
+    </div>
+    {% if embed_status %}
+    <div class="embed_container_mobile">
+        <iframe src="{{embed_code}}" class="embed-iframe"></iframe>
+    </div>
+    {% endif %}
+</body>
+</html>
