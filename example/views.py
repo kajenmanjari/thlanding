@@ -1,28 +1,28 @@
 from datetime import datetime
 from django.http import HttpResponse
 from django.shortcuts import render
-from concurrent.futures import ThreadPoolExecutor
-import json
-import requests
-
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 
+from concurrent.futures import ThreadPoolExecutor
+import json
+import requests
+from urllib.parse import urlparse
+
 
 def main_page(request):
     # CHANGE TO USER'S URL
-    found_redirect = False
-    # 1.) Search database for main domain
+    found_redirect = True
+
     absolute_uri = request.build_absolute_uri('/')
-    search_data_field("custom_domain", "redirect_domain", absolute_uri)
-    # 2.) Find the redirect_domain
-    # 3.) Pass it into value
-    if(found_redirect):
-        return redirect('https://github.com/')
-    else:
+    redirect_url = get_redirect(absolute_uri)
+
+    if(redirect_url == 404):
         return render(request, '404.html')
+    else:
+       return redirect(redirect_url)
 
 @csrf_exempt
 def cta_clicked(request):
@@ -199,7 +199,6 @@ def player(request, slug=None):  # Make slug an optional parameter
                                           'logo_url': logo_url
                                           })
 
-
 def search_data_field(data_type, field_name, field_value):
     api_key = "cb49dfd6e576e3153fcf8d3b211698b0"
     search_constraints = [
@@ -304,3 +303,99 @@ def update_database_put(unique_id, data_type, field_name, new_value):
     else:
         print(f"Error: {response.status_code} - {response.text}")
         return -1
+
+
+
+
+def get_redirect(absolute_uri):
+    # Make main URL in lowercase
+    # Take out HTTPS "https://targify.io" -> "targify.io"
+
+    main_url = get_main_url(absolute_uri)
+
+    if(main_url == "Invalid URL"):
+        return (404)
+
+    print("main_url: ", main_url)
+
+    # Search main url with https:// and www. removed
+    redirect_domain, status = search_for_redirect("custom_domain", "domain_name", main_url)
+
+    if not status['item_found']:
+        # Search domain with www.
+        new_url = "www." + main_url
+        redirect_domain, status = search_for_redirect("custom_domain", "domain_name", new_url)
+        
+    if not status['item_found']:
+        # Search domain with https://
+        redirect_domain, status = search_for_redirect("custom_domain", "domain_name", absolute_uri)
+    
+    if not status['item_found']:
+        # Search domain with https://
+        redirect_domain, status = search_for_redirect("custom_domain", "domain_name", "http://" + main_url)
+
+    if not status['item_found']:
+        return (404)
+
+    if status['item_found']:
+        return format_redirect(redirect_domain)
+
+def get_main_url(url):
+    url = url.strip()  # Remove leading and trailing whitespace.
+
+    # Prepend with 'http://' if the scheme is missing and if not a path.
+    if '://' not in url and not url.startswith('/'):
+        url = 'http://' + url
+    
+    if url.startswith('/'):
+        # If the url is a path, strip the slashes and return.
+        return url.strip('/')
+    else:
+        parsed_url = urlparse(url)
+
+        if parsed_url.hostname:
+            hostname_parts = parsed_url.hostname.split('.')
+            if len(hostname_parts) > 2 and hostname_parts[0] == 'www':
+                main_url = '.'.join(hostname_parts[1:])
+            else:
+                main_url = parsed_url.hostname
+            return main_url
+        else:
+            return "Invalid URL"
+
+
+def search_for_redirect(data_type, field_name, field_value):
+    api_key = "cb49dfd6e576e3153fcf8d3b211698b0"
+    search_constraints = [
+        {
+            "key": field_name,
+            "constraint_type": "equals",
+            "value": field_value,
+        }
+    ]
+    constraints_json = json.dumps(search_constraints)
+    bubble_url = f"https://scalifyv4.bubbleapps.io/version-test/api/1.1/obj/{data_type}?constraints={constraints_json}"
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+
+    response = requests.get(bubble_url, headers=headers)
+
+    status = {"request_status": False, "item_found": False}
+
+    if response.status_code == 200:
+        data = response.json()
+        status["request_status"] = True
+        if 'response' in data and 'results' in data['response'] and len(data['response']['results']) > 0:
+            result_data = data['response']['results'][0]
+            if 'redirect' in result_data:
+                status["item_found"] = True
+                return result_data['redirect'], status
+            
+    return None, status
+
+
+def format_redirect(redirect_url):
+    main_url = get_main_url(redirect_url)
+
+    # Prepend 'https://' to the main url
+    return 'https://' + main_url
