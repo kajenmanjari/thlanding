@@ -129,10 +129,38 @@ button:hover {
 }
 
 
+@media (max-width: 600px) {
+    button {
+        font-size: 3.7vw;
+        padding: 1.2vw 1.2vh;
+    }
 
+    h2{
+        font-size: 5vw;
+    }
 
-/* Mobile or Small devices */
-@media (max-width: 800px) {
+    .container-wrapper {
+        width: 100%;
+        margin-left: 2%;
+        margin-right: 2%;
+    }
+
+    .videoplayer-button-title-button-wrapper{
+        width: 100%;
+    }
+
+    .embed_container_mobile{
+        display: block;
+    }
+
+    .embed_container{
+        display: none;
+    }
+    
+}
+
+/* Small devices */
+@media (min-width: 601px) and (max-width: 800px) {
     button {
         font-size: 2.9vw;
         padding: 1.2vw 1.2vh;

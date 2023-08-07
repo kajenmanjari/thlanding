@@ -13,9 +13,6 @@ from urllib.parse import urlparse
 
 
 def main_page(request):
-    # CHANGE TO USER'S URL
-    found_redirect = True
-
     absolute_uri = request.build_absolute_uri('/')
     redirect_url = get_redirect(absolute_uri)
 
