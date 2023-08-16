@@ -111,6 +111,9 @@ def index(request, slug=None):  # Make slug an optional parameter
         cta_text = future4.result()
         cta_status = future5.result()
 
+        if(not("http" in cta_link)):
+            cta_link = "https://" + cta_link
+
         valid_slug = True
 
     else:
